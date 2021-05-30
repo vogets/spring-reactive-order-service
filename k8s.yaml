@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-reactive-order-service-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring-reactive-order-service-deployment
+  template:
+    metadata:
+      labels:
+        app: spring-reactive-order-service-deployment
+    spec:
+      containers:
+        - name: spring-reactive-order-service-deployment
+          env:
+            - name: PRODUCT_SERVICE
+              valueFrom:
+                configMapKeyRef:
+                  name: order-service-config
+                  key: product_service_url
+            - name: USER_SERVICE
+              valueFrom:
+                  configMapKeyRef:
+                    name: order-service-config
+                    key: user_service_url
+            - name: POSTGRES_HOST
+              valueFrom:
+                  configMapKeyRef:
+                    name: order-service-config
+                    key: postgres_host
+            - name: ORDER_SCHEMA
+              valueFrom:
+                  configMapKeyRef:
+                    name: order-service-config
+                    key: order_schema
+            - name: POSTGRES_USER
+              valueFrom:
+                  configMapKeyRef:
+                    name: order-service-config
+                    key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                  configMapKeyRef:
+                    name: order-service-config
+                    key: postgres_password
+            - name: HIBERNATE_DDL
+              valueFrom:
+                  configMapKeyRef:
+                    name: order-service-config
+                    key: hibernate_ddl
+                   
+                    
+          image: vogetisameer12/spring-reactive-order-service:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-reactive-order-service
+spec:
+  ports:
+    - name: http
+      targetPort: 8080
+      port: 8080
+  selector:
+    app: spring-reactive-order-service-deployment
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: reactive-order-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+    - host: oam.cluster-01.company.com
+      http:
+        paths:
+          - path: /order
+            backend:
+              serviceName: spring-reactive-order-service
+              servicePort: http
+

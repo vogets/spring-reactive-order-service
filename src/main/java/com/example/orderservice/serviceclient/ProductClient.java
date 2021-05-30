@@ -12,9 +12,6 @@ public class ProductClient {
 
     private WebClient webClient;
 
-    @Autowired
-    private ReactiveCircuitBreakerFactory cbFactory;
-
     public ProductClient(@Value("${product.service.url}") String url)
     {
         this.webClient=WebClient.builder()
